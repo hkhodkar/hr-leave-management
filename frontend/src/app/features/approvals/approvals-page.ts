@@ -42,7 +42,7 @@ export class ApprovalsPage {
     source: () => [this.tab(), this.departmentId(), this.session.userId()],
     computation: () => 1,
   });
-  protected readonly pageSize = 10;
+  protected readonly pageSize = 20;
 
   protected readonly busyId = signal<number | null>(null);
   protected readonly rejectTarget = signal<LeaveRequest | null>(null);

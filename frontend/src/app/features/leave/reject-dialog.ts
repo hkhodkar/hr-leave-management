@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Modal } from '../../shared/ui/modal';
 
 /** Rejecting needs a reason, so the employee knows what to change. */
@@ -9,7 +9,7 @@ import { Modal } from '../../shared/ui/modal';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-modal title="Reject request" [width]="480" (closed)="cancelled.emit()">
-      <form (ngSubmit)="submit()" novalidate>
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <div class="modal-body">
           <p class="text-muted intro">{{ summary() }}</p>
           <div class="field">
@@ -63,6 +63,7 @@ export class RejectDialog {
     nonNullable: true,
     validators: [Validators.required, Validators.pattern(/\S/), Validators.maxLength(500)],
   });
+  protected readonly form = new FormGroup({ comment: this.comment });
 
   protected submit(): void {
     this.tried.set(true);

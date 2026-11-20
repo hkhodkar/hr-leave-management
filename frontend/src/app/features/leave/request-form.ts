@@ -96,6 +96,11 @@ export class RequestForm {
     return this.holidayList().filter((h) => h.date >= input.start_date && h.date <= input.end_date);
   });
   private readonly holidayList = signal<{ date: string; name: string }[]>([]);
+  protected readonly holidayNames = computed(() =>
+    this.holidaysInRange()
+      .map((h) => h.name)
+      .join(', '),
+  );
 
   protected readonly selectedBalance = computed<Balance | null>(() => {
     const input = this.input();
@@ -106,7 +111,9 @@ export class RequestForm {
     );
   });
 
+  // the status can stay INVALID while the reason changes, so follow the value too
   protected readonly problem = computed(() => {
+    this.value();
     this.status();
     return leaveErrorMessage(this.form.errors);
   });

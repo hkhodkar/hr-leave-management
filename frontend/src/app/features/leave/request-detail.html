@@ -57,30 +57,30 @@
       </ol>
     </div>
 
-    @if (r.can_decide || r.can_cancel) {
-      <footer class="modal-footer">
-        @if (r.can_cancel) {
-          <button
-            type="button"
-            class="btn btn-ghost cancel-btn"
-            [disabled]="busy()"
-            (click)="askCancel()"
-          >
-            Cancel request
-          </button>
-        }
-        @if (r.can_decide) {
-          <button type="button" class="btn" [disabled]="busy()" (click)="openReject()">
-            <app-icon name="x" [size]="16" />
-            Reject
-          </button>
-          <button type="button" class="btn btn-primary" [disabled]="busy()" (click)="approve(r)">
-            <app-icon name="check" [size]="16" />
-            Approve
-          </button>
-        }
-      </footer>
-    }
+    <footer class="modal-footer">
+      @if (r.can_cancel) {
+        <button
+          type="button"
+          class="btn btn-ghost cancel-btn"
+          [disabled]="busy()"
+          (click)="askCancel()"
+        >
+          Cancel request
+        </button>
+      }
+      @if (r.can_decide) {
+        <button type="button" class="btn" [disabled]="busy()" (click)="openReject()">
+          <app-icon name="x" [size]="16" />
+          Reject
+        </button>
+        <button type="button" class="btn btn-primary" [disabled]="busy()" (click)="approve(r)">
+          <app-icon name="check" [size]="16" />
+          Approve
+        </button>
+      } @else {
+        <button type="button" class="btn" (click)="close()">Close</button>
+      }
+    </footer>
 
     @if (confirmCancel()) {
       <app-confirm-dialog

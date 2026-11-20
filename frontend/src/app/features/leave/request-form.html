@@ -90,10 +90,10 @@
           } @else {
             <p>
               Weekends
-              @if (holidaysInRange().length) {
+              @if (holidayNames(); as names) {
                 and {{ holidaysInRange().length === 1 ? 'a bank holiday' : 'bank holidays' }} ({{
-                  holidaysInRange()[0].name
-                }}{{ holidaysInRange().length > 1 ? ', …' : '' }})
+                  names
+                }})
               } @else {
                 and bank holidays
               }
