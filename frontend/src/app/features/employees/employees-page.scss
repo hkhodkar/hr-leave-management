@@ -1,0 +1,65 @@
+.role-pill {
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: 1px;
+
+  &.role-manager {
+    background: var(--warning-soft);
+    color: var(--warning);
+  }
+
+  &.role-hr {
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+}
+
+@media (max-width: 760px) {
+  // stack rows on phones: name first, the rest as small text
+  .employees thead {
+    display: none;
+  }
+
+  .employees,
+  .employees tbody,
+  .employees tr,
+  .employees td {
+    display: block;
+    width: 100%;
+  }
+
+  .employees tr {
+    position: relative;
+    padding: 12px 16px;
+  }
+
+  .employees td {
+    padding: 0 !important;
+    white-space: normal;
+  }
+
+  .employees td:not(:first-child) {
+    padding-left: 46px !important;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .employees td:nth-child(4)::before {
+    content: 'Manager: ';
+  }
+
+  .employees td:nth-child(5)::before {
+    content: 'Started ';
+  }
+
+  .employees td.actions {
+    position: absolute;
+    top: 10px;
+    right: 8px;
+    width: auto;
+    padding: 0 !important;
+  }
+}

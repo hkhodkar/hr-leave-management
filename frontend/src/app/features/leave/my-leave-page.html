@@ -1,0 +1,78 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>My leave</h1>
+      <p class="subtitle">Your balances and requests for the year.</p>
+    </div>
+    <div class="page-actions">
+      <label class="visually-hidden" for="leave-year">Year</label>
+      <select id="leave-year" class="select year-select" (change)="setYear($event)">
+        @for (y of years; track y) {
+          <option [value]="y" [selected]="y === year()">{{ y }}</option>
+        }
+      </select>
+      <button type="button" class="btn btn-primary" (click)="openForm()">
+        <app-icon name="plus" [size]="16" />
+        Request leave
+      </button>
+    </div>
+  </header>
+
+  @if (balances.value(); as list) {
+    <app-balance-cards [balances]="list" />
+  } @else if (balances.error()) {
+    <p class="form-error">{{ errorText(balances.error()) }}</p>
+  } @else {
+    <div class="balance-placeholder card"></div>
+  }
+
+  <div class="card card-flush">
+    <div class="card-header">
+      <h2>Requests</h2>
+      <div class="segmented status-filter" role="radiogroup" aria-label="Filter by status">
+        @for (f of statusFilters; track f.value) {
+          <label>
+            <input
+              type="radio"
+              name="status-filter"
+              [value]="f.value"
+              [checked]="status() === f.value"
+              (change)="setStatus(f.value)"
+            />
+            {{ f.label }}
+          </label>
+        }
+      </div>
+    </div>
+
+    @if (requests.isLoading()) {
+      <div class="loading-bar"></div>
+    }
+    @if (requests.error()) {
+      <p class="empty-state">{{ errorText(requests.error()) }}</p>
+    } @else if (requests.value(); as result) {
+      @if (result.items.length) {
+        <app-request-table [requests]="result.items" (opened)="openRequest($event)" />
+        <app-pagination
+          [page]="result.page"
+          [pageSize]="result.page_size"
+          [total]="result.total"
+          (pageChange)="page.set($event)"
+        />
+      } @else {
+        <div class="empty-state">
+          <p>No requests here yet.</p>
+          <button type="button" class="btn btn-sm" (click)="openForm()">Request leave</button>
+        </div>
+      }
+    }
+  </div>
+</section>
+
+@if (formOpen()) {
+  <app-request-form (saved)="onSaved($event)" (closed)="closeForm()" />
+}
+
+@if (openRequestId(); as id) {
+  <app-request-detail [requestId]="id" (changed)="reload()" (closed)="closeRequest()" />
+}

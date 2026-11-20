@@ -1,0 +1,125 @@
+<app-modal title="Leave request" [width]="560" (closed)="close()">
+  @if (request.value(); as r) {
+    <div class="modal-body">
+      <div class="who">
+        <app-avatar [name]="r.employee.name" [size]="44" />
+        <div>
+          <strong>{{ r.employee.name }}</strong>
+          <small>{{ r.employee.job_title }}</small>
+        </div>
+        <app-status-badge [status]="r.status" />
+      </div>
+
+      <dl class="facts">
+        <div>
+          <dt>Type</dt>
+          <dd><app-leave-type-tag [type]="r.leave_type" /></dd>
+        </div>
+        <div>
+          <dt>Days</dt>
+          <dd class="num">{{ formatDays(r.days) }}</dd>
+        </div>
+        <div class="wide">
+          <dt>Dates</dt>
+          <dd>
+            {{ formatDateRange(r.start_date, r.end_date) }}
+            @if (halfDayLabel(r); as half) {
+              <span class="half">{{ half }}</span>
+            }
+          </dd>
+        </div>
+        @if (r.reason) {
+          <div class="wide">
+            <dt>Reason</dt>
+            <dd>{{ r.reason }}</dd>
+          </div>
+        }
+      </dl>
+
+      <h3 class="history-title">History</h3>
+      <ol class="timeline">
+        @for (event of r.events; track event.id) {
+          <li [class]="'event-' + event.action">
+            <span class="marker"
+              ><app-icon [name]="eventText[event.action].icon" [size]="14"
+            /></span>
+            <div class="event-body">
+              <p>
+                <strong>{{ event.actor.name }}</strong> {{ eventText[event.action].verb }}
+              </p>
+              <time class="text-muted">{{ formatTimestamp(event.created_at) }}</time>
+              @if (event.comment) {
+                <blockquote>{{ event.comment }}</blockquote>
+              }
+            </div>
+          </li>
+        }
+      </ol>
+    </div>
+
+    @if (r.can_decide || r.can_cancel) {
+      <footer class="modal-footer">
+        @if (r.can_cancel) {
+          <button
+            type="button"
+            class="btn btn-ghost cancel-btn"
+            [disabled]="busy()"
+            (click)="askCancel()"
+          >
+            Cancel request
+          </button>
+        }
+        @if (r.can_decide) {
+          <button type="button" class="btn" [disabled]="busy()" (click)="openReject()">
+            <app-icon name="x" [size]="16" />
+            Reject
+          </button>
+          <button type="button" class="btn btn-primary" [disabled]="busy()" (click)="approve(r)">
+            <app-icon name="check" [size]="16" />
+            Approve
+          </button>
+        }
+      </footer>
+    }
+
+    @if (confirmCancel()) {
+      <app-confirm-dialog
+        title="Cancel this request?"
+        [message]="
+          r.status === 'approved'
+            ? 'The approved leave will be removed from the calendar and the days go back to the balance.'
+            : 'Your manager will no longer see it in their approvals.'
+        "
+        confirmLabel="Cancel request"
+        [busy]="busy()"
+        (confirmed)="cancel(r)"
+        (cancelled)="keepRequest()"
+      />
+    }
+
+    @if (rejecting()) {
+      <app-reject-dialog
+        [employeeName]="r.employee.name"
+        [summary]="
+          r.leave_type.name +
+          ', ' +
+          formatDateRange(r.start_date, r.end_date) +
+          ' (' +
+          formatDays(r.days) +
+          ')'
+        "
+        [busy]="busy()"
+        [error]="actionError()"
+        (confirmed)="reject(r, $event)"
+        (cancelled)="closeReject()"
+      />
+    }
+  } @else if (loadError(); as error) {
+    <div class="modal-body">
+      <p class="form-error">{{ error }}</p>
+    </div>
+  } @else {
+    <div class="loading-bar" aria-label="Loading"></div>
+    <div class="modal-body skeleton">Loading…</div>
+  }
+</app-modal>

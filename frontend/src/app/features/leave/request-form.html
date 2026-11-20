@@ -1,0 +1,126 @@
+<app-modal title="Request leave" [width]="620" (closed)="close()">
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    @if (loading()) {
+      <div class="loading-bar" aria-label="Loading"></div>
+    }
+    <div class="modal-body">
+      <fieldset class="field">
+        <legend>Leave type</legend>
+        <div class="type-options">
+          @for (type of leaveTypes(); track type.id) {
+            <label class="type-option" [style.--type-color]="type.color">
+              <input type="radio" formControlName="leave_type_id" [value]="type.id" />
+              <span class="type-name"><span class="swatch"></span>{{ type.name }}</span>
+              <small>{{ remainingLabel(type) }}</small>
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="leave-start">From</label>
+          <input id="leave-start" type="date" class="input" formControlName="start_date" />
+        </div>
+        <div class="field">
+          <label for="leave-end">To</label>
+          <input
+            id="leave-end"
+            type="date"
+            class="input"
+            formControlName="end_date"
+            [min]="form.controls.start_date.value"
+          />
+        </div>
+
+        @if (singleDay()) {
+          <fieldset class="field full">
+            <legend>How long</legend>
+            <div class="segmented">
+              <label><input type="radio" formControlName="day_part" value="full" />Full day</label>
+              <label
+                ><input type="radio" formControlName="day_part" value="morning" />Morning</label
+              >
+              <label
+                ><input type="radio" formControlName="day_part" value="afternoon" />Afternoon</label
+              >
+            </div>
+          </fieldset>
+        } @else {
+          <fieldset class="field full">
+            <legend>Half days</legend>
+            <div class="checks">
+              <label class="check">
+                <input type="checkbox" formControlName="half_day_start" />
+                <span>Start after lunch on the first day</span>
+              </label>
+              <label class="check">
+                <input type="checkbox" formControlName="half_day_end" />
+                <span>Come back after lunch on the last day</span>
+              </label>
+            </div>
+          </fieldset>
+        }
+
+        <div class="field full">
+          <label for="leave-reason">Reason <span class="optional">(optional)</span></label>
+          <textarea
+            id="leave-reason"
+            class="textarea"
+            rows="3"
+            maxlength="500"
+            formControlName="reason"
+            placeholder="Anything your manager should know"
+          ></textarea>
+        </div>
+      </div>
+
+      <section
+        class="summary"
+        [class.has-problem]="showDateErrors() && problem()"
+        aria-live="polite"
+      >
+        <div class="summary-count">
+          <span class="count">{{ days() }}</span>
+          <span>working {{ days() === 1 ? 'day' : 'days' }}</span>
+        </div>
+        <div class="summary-text">
+          @if (showDateErrors() && problem(); as message) {
+            <p class="problem"><app-icon name="alert" [size]="16" />{{ message }}</p>
+          } @else {
+            <p>
+              Weekends
+              @if (holidaysInRange().length) {
+                and {{ holidaysInRange().length === 1 ? 'a bank holiday' : 'bank holidays' }} ({{
+                  holidaysInRange()[0].name
+                }}{{ holidaysInRange().length > 1 ? ', …' : '' }})
+              } @else {
+                and bank holidays
+              }
+              are not counted.
+            </p>
+          }
+          @let left = remainingAfter();
+          @let typeName = selectedBalance()?.leave_type?.name?.toLowerCase();
+          @if (left !== null && left > 0) {
+            <p class="text-muted">{{ formatDays(left) }} of {{ typeName }} left afterwards</p>
+          } @else if (left === 0) {
+            <p class="text-muted">This uses up the rest of your {{ typeName }}</p>
+          }
+        </div>
+      </section>
+
+      @if (serverError(); as error) {
+        <p class="form-error" role="alert">{{ error }}</p>
+      }
+    </div>
+
+    <footer class="modal-footer">
+      <button type="button" class="btn" (click)="close()">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="saving() || loading()">
+        <app-icon name="send" [size]="16" />
+        {{ saving() ? 'Sending…' : 'Send request' }}
+      </button>
+    </footer>
+  </form>
+</app-modal>

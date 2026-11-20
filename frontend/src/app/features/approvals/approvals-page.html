@@ -1,0 +1,160 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Approvals</h1>
+      <p class="subtitle">
+        @if (session.isHr()) {
+          As an HR admin you can decide on anyone's leave except your own.
+        } @else {
+          Leave requests from your team.
+        }
+      </p>
+    </div>
+  </header>
+
+  <div class="card card-flush">
+    <div class="toolbar">
+      <div class="tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          [class.active]="tab() === 'pending'"
+          [attr.aria-selected]="tab() === 'pending'"
+          (click)="setTab('pending')"
+        >
+          Waiting for you
+          @if (session.pendingApprovals() > 0) {
+            <span class="count">{{ session.pendingApprovals() }}</span>
+          }
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="tab"
+          [class.active]="tab() === 'history'"
+          [attr.aria-selected]="tab() === 'history'"
+          (click)="setTab('history')"
+        >
+          History
+        </button>
+      </div>
+      @if (session.isHr()) {
+        <label class="visually-hidden" for="approvals-department">Department</label>
+        <select
+          id="approvals-department"
+          class="select toolbar-end-select"
+          (change)="setDepartment($event)"
+        >
+          <option value="">All departments</option>
+          @for (d of departments(); track d.id) {
+            <option [value]="d.id" [selected]="d.id === departmentId()">{{ d.name }}</option>
+          }
+        </select>
+      }
+    </div>
+
+    @if (requests.isLoading()) {
+      <div class="loading-bar"></div>
+    }
+
+    @if (requests.error()) {
+      <p class="empty-state">{{ errorText(requests.error()) }}</p>
+    } @else if (requests.value(); as result) {
+      @if (!result.items.length) {
+        <div class="empty-state">
+          <app-icon name="check-circle" [size]="28" />
+          <p>
+            {{
+              tab() === 'pending'
+                ? 'All caught up, nothing is waiting for you.'
+                : 'No decided requests yet.'
+            }}
+          </p>
+        </div>
+      } @else if (tab() === 'pending') {
+        <ul class="list-plain inbox">
+          @for (r of result.items; track r.id) {
+            <li class="inbox-item">
+              <button
+                type="button"
+                class="item-main"
+                (click)="open(r)"
+                [attr.aria-label]="'Open request from ' + r.employee.name"
+              >
+                <app-avatar [name]="r.employee.name" [size]="40" />
+                <div class="item-text">
+                  <p class="item-title">
+                    <strong>{{ r.employee.name }}</strong>
+                    <span class="text-muted">{{ r.employee.job_title }}</span>
+                  </p>
+                  <p class="item-meta">
+                    <app-leave-type-tag [type]="r.leave_type" />
+                    <span>{{ dateRange(r.start_date, r.end_date) }}</span>
+                    <span class="days">{{ days(r.days) }}</span>
+                    @if (halfDay(r); as half) {
+                      <span class="text-muted">{{ half }}</span>
+                    }
+                  </p>
+                  @if (r.reason) {
+                    <p class="reason">“{{ r.reason }}”</p>
+                  }
+                  <p class="requested text-muted">Requested {{ stamp(r.created_at) }}</p>
+                </div>
+              </button>
+              <div class="item-actions">
+                <button
+                  type="button"
+                  class="btn btn-sm"
+                  [disabled]="busyId() === r.id"
+                  (click)="askReject(r)"
+                >
+                  <app-icon name="x" [size]="14" />
+                  Reject
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary"
+                  [disabled]="busyId() === r.id"
+                  (click)="approve(r)"
+                >
+                  <app-icon name="check" [size]="14" />
+                  Approve
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <app-request-table
+          [requests]="result.items"
+          [showEmployee]="true"
+          (opened)="open($event)"
+        />
+      }
+      @if (result.total > result.page_size) {
+        <app-pagination
+          [page]="result.page"
+          [pageSize]="result.page_size"
+          [total]="result.total"
+          (pageChange)="page.set($event)"
+        />
+      }
+    }
+  </div>
+</section>
+
+@if (rejectTarget(); as r) {
+  <app-reject-dialog
+    [employeeName]="r.employee.name"
+    [summary]="summary(r)"
+    [busy]="busyId() === r.id"
+    [error]="rejectError()"
+    (confirmed)="reject(r, $event)"
+    (cancelled)="closeReject()"
+  />
+}
+
+@if (openRequestId(); as id) {
+  <app-request-detail [requestId]="id" (changed)="changed()" (closed)="closeRequest()" />
+}

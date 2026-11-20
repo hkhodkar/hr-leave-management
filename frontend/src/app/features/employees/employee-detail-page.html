@@ -1,0 +1,141 @@
+<section class="page">
+  <a class="breadcrumb" routerLink="/employees"
+    ><app-icon name="arrow-left" [size]="14" />Employees</a
+  >
+
+  @if (employee.value(); as e) {
+    <header class="detail-header">
+      <div class="identity">
+        <app-avatar [name]="e.name" [size]="56" />
+        <div>
+          <h1>{{ e.name }}</h1>
+          <p class="subtitle">{{ e.job_title }} · {{ e.department.name }}</p>
+        </div>
+      </div>
+      <div class="page-actions">
+        <label class="visually-hidden" for="detail-year">Year</label>
+        <select id="detail-year" class="select year-select" (change)="setYear($event)">
+          @for (y of years; track y) {
+            <option [value]="y" [selected]="y === year()">{{ y }}</option>
+          }
+        </select>
+        @if (session.isHr()) {
+          <button type="button" class="btn" (click)="edit()">
+            <app-icon name="pencil" [size]="16" />
+            Edit
+          </button>
+        }
+      </div>
+    </header>
+
+    <div class="detail-grid">
+      <aside class="column">
+        <div class="card">
+          <dl class="meta-list">
+            <div>
+              <dt>Email</dt>
+              <dd>
+                <a [href]="'mailto:' + e.email">{{ e.email }}</a>
+              </dd>
+            </div>
+            <div>
+              <dt>Manager</dt>
+              <dd>
+                @if (e.manager; as m) {
+                  <a [routerLink]="['/employees', m.id]">{{ m.name }}</a>
+                } @else {
+                  –
+                }
+              </dd>
+            </div>
+            <div>
+              <dt>Start date</dt>
+              <dd>
+                {{ formatDate(e.start_date) }} <span class="text-muted">· {{ tenure(e) }}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Access</dt>
+              <dd>{{ roleLabels[e.role] }}</dd>
+            </div>
+            @if (e.report_count) {
+              <div>
+                <dt>Team</dt>
+                <dd>
+                  {{ e.report_count }} direct {{ e.report_count === 1 ? 'report' : 'reports' }}
+                </dd>
+              </div>
+            }
+          </dl>
+        </div>
+      </aside>
+
+      <div class="column">
+        @if (restricted()) {
+          <div class="card locked">
+            <app-icon name="lock" [size]="22" />
+            <div>
+              <h2>Leave details are private</h2>
+              <p class="text-muted">
+                Balances and requests are visible to {{ e.name.split(' ')[0] }}, their manager and
+                HR. Switch to one of them with “View as” to see more.
+              </p>
+            </div>
+          </div>
+        } @else {
+          @if (balances.value(); as list) {
+            <app-balance-cards class="two-up" [balances]="list" />
+          } @else if (balances.error()) {
+            <p class="form-error">{{ errorText(balances.error(), 'Could not load balances') }}</p>
+          }
+
+          <div class="card card-flush">
+            <div class="card-header">
+              <h2>Leave in {{ year() }}</h2>
+            </div>
+            @if (requests.isLoading()) {
+              <div class="loading-bar"></div>
+            }
+            @if (requests.value(); as result) {
+              @if (result.items.length) {
+                <app-request-table [requests]="result.items" (opened)="openRequest($event)" />
+                @if (result.total > result.page_size) {
+                  <app-pagination
+                    [page]="result.page"
+                    [pageSize]="result.page_size"
+                    [total]="result.total"
+                    (pageChange)="page.set($event)"
+                  />
+                }
+              } @else {
+                <p class="empty-state">No leave requested in {{ year() }}.</p>
+              }
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (editing()) {
+      <app-employee-form [employee]="e" (saved)="onSaved()" (closed)="closeForm()" />
+    }
+  } @else if (employee.error()) {
+    <div class="not-found">
+      <app-icon name="user" [size]="32" />
+      <p>
+        {{
+          isNotFound()
+            ? 'This employee does not exist.'
+            : errorText(employee.error(), 'Could not load the employee')
+        }}
+      </p>
+      <a class="btn" routerLink="/employees">Back to employees</a>
+    </div>
+  } @else {
+    <div class="loading-bar"></div>
+  }
+</section>
+
+@if (openRequestId(); as id) {
+  <app-request-detail [requestId]="id" (changed)="changed()" (closed)="closeRequest()" />
+}

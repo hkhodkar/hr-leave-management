@@ -1,0 +1,141 @@
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 500;
+  cursor: pointer;
+
+  &.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .count {
+    padding: 0 7px;
+    border-radius: 999px;
+    background: #f59e0b;
+    color: #1f1500;
+    font-size: 12px;
+    font-weight: 700;
+  }
+}
+
+.toolbar-end-select {
+  margin-left: auto;
+}
+
+.empty-state app-icon {
+  margin-bottom: 8px;
+  color: var(--success);
+}
+
+.inbox-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+
+  & + & {
+    border-top: 1px solid var(--border);
+  }
+}
+
+.item-main {
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover .item-title strong {
+    color: var(--primary);
+  }
+}
+
+.item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.item-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+
+  strong {
+    font-size: 15px;
+  }
+
+  span {
+    font-size: 13px;
+  }
+}
+
+.item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+
+  .days {
+    font-weight: 600;
+  }
+}
+
+.reason {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.requested {
+  font-size: 12px;
+}
+
+.item-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .inbox-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .item-actions {
+    padding-left: 54px;
+
+    .btn {
+      flex: 1;
+    }
+  }
+
+  .toolbar-end-select {
+    margin-left: 0;
+  }
+}

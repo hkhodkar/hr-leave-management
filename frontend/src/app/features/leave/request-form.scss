@@ -1,0 +1,150 @@
+.type-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.type-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  small {
+    padding-left: 18px;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  &:hover {
+    border-color: var(--type-color);
+  }
+
+  &:has(input:checked) {
+    border-color: var(--type-color);
+    background: color-mix(in srgb, var(--type-color) 7%, var(--surface));
+    box-shadow: 0 0 0 1px var(--type-color);
+  }
+
+  &:has(input:focus-visible) {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+.type-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--type-color);
+}
+
+fieldset.field + .form-grid {
+  margin-top: 18px;
+}
+
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  cursor: pointer;
+
+  input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: var(--primary);
+  }
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+
+  &.has-problem {
+    background: var(--danger-soft);
+
+    .count {
+      color: var(--danger);
+    }
+  }
+}
+
+.summary-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 72px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.2;
+
+  .count {
+    color: var(--primary);
+    font-size: 26px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.summary-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.problem {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--danger);
+  font-weight: 500;
+
+  app-icon {
+    margin-top: 1px;
+  }
+}
+
+.form-error {
+  margin-top: 16px;
+}
+
+@media (max-width: 560px) {
+  .type-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

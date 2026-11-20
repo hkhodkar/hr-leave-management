@@ -1,0 +1,130 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Employees</h1>
+      <p class="subtitle">
+        {{ employees.value()?.total ?? '…' }} people across {{ departments().length }} departments
+      </p>
+    </div>
+    @if (session.isHr()) {
+      <div class="page-actions">
+        <button type="button" class="btn btn-primary" (click)="add()">
+          <app-icon name="plus" [size]="16" />
+          Add employee
+        </button>
+      </div>
+    }
+  </header>
+
+  <div class="card card-flush">
+    <div class="toolbar">
+      <label class="input-icon search">
+        <span class="visually-hidden">Search employees</span>
+        <app-icon class="icon" name="search" [size]="16" />
+        <input
+          class="input"
+          type="search"
+          placeholder="Search by name, email or title"
+          [value]="searchText()"
+          (input)="onSearch($event)"
+        />
+      </label>
+      <label class="visually-hidden" for="emp-filter-department">Department</label>
+      <select id="emp-filter-department" class="select" (change)="setDepartment($event)">
+        <option value="">All departments</option>
+        @for (d of departments(); track d.id) {
+          <option [value]="d.id" [selected]="d.id === departmentId()">
+            {{ d.name }} ({{ d.headcount }})
+          </option>
+        }
+      </select>
+      <label class="visually-hidden" for="emp-sort">Sort by</label>
+      <select id="emp-sort" class="select" (change)="setSort($event)">
+        <option value="name" [selected]="sort() === 'name'">Name A–Z</option>
+        <option value="-name" [selected]="sort() === '-name'">Name Z–A</option>
+        <option value="department" [selected]="sort() === 'department'">Department</option>
+        <option value="-start_date" [selected]="sort() === '-start_date'">Newest joiners</option>
+        <option value="start_date" [selected]="sort() === 'start_date'">Longest serving</option>
+      </select>
+    </div>
+
+    @if (employees.isLoading()) {
+      <div class="loading-bar"></div>
+    }
+
+    @if (employees.error()) {
+      <p class="empty-state">{{ errorText(employees.error()) }}</p>
+    } @else if (employees.value(); as result) {
+      @if (result.items.length) {
+        <div class="table-wrap">
+          <table class="table employees">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Job title</th>
+                <th>Department</th>
+                <th>Manager</th>
+                <th>Started</th>
+                @if (session.isHr()) {
+                  <th class="actions"><span class="visually-hidden">Actions</span></th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (e of result.items; track e.id) {
+                <tr class="clickable" tabindex="0" (click)="open(e)" (keydown.enter)="open(e)">
+                  <td>
+                    <div class="cell-main">
+                      <app-avatar [name]="e.name" [size]="34" />
+                      <div>
+                        <strong>{{ e.name }}</strong>
+                        @if (e.role !== 'employee') {
+                          <span class="role-pill" [class]="'role-pill role-' + e.role">{{
+                            roleLabels[e.role]
+                          }}</span>
+                        }
+                        <small>{{ e.email }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{ e.job_title }}</td>
+                  <td>{{ e.department.name }}</td>
+                  <td>{{ e.manager?.name ?? '–' }}</td>
+                  <td class="text-muted">{{ formatDate(e.start_date) }}</td>
+                  @if (session.isHr()) {
+                    <td class="actions">
+                      <button
+                        type="button"
+                        class="icon-btn"
+                        [attr.aria-label]="'Edit ' + e.name"
+                        (click)="edit(e, $event)"
+                      >
+                        <app-icon name="pencil" [size]="16" />
+                      </button>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <app-pagination
+          [page]="result.page"
+          [pageSize]="result.page_size"
+          [total]="result.total"
+          (pageChange)="page.set($event)"
+        />
+      } @else {
+        <p class="empty-state">No employees match these filters.</p>
+      }
+    }
+  </div>
+</section>
+
+@if (editing() !== undefined) {
+  <app-employee-form
+    [employee]="editing() ?? null"
+    (saved)="onSaved($event)"
+    (closed)="closeForm()"
+  />
+}
