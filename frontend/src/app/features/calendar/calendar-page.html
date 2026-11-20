@@ -1,0 +1,189 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Team calendar</h1>
+      <p class="subtitle">
+        Who is off, at a glance. Leave types are only shown to the person, their manager and HR.
+      </p>
+    </div>
+  </header>
+
+  <div class="card card-flush">
+    <div class="toolbar calendar-toolbar">
+      <div class="month-nav">
+        <button type="button" class="icon-btn" aria-label="Previous month" (click)="move(-1)">
+          <app-icon name="chevron-left" />
+        </button>
+        <h2 class="month-title" aria-live="polite">{{ title() }}</h2>
+        <button type="button" class="icon-btn" aria-label="Next month" (click)="move(1)">
+          <app-icon name="chevron-right" />
+        </button>
+        <button type="button" class="btn btn-sm" [disabled]="isCurrentMonth()" (click)="goToday()">
+          Today
+        </button>
+      </div>
+      <span class="off-count text-muted">
+        @if (data.value()) {
+          {{ peopleOff() }} {{ peopleOff() === 1 ? 'person' : 'people' }} off this month
+        }
+      </span>
+      <label class="visually-hidden" for="calendar-department">Department</label>
+      <select id="calendar-department" class="select" (change)="setDepartment($event)">
+        <option value="">All departments</option>
+        @for (d of departments(); track d.id) {
+          <option [value]="d.id" [selected]="d.id === departmentId()">{{ d.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="legend" aria-label="Legend">
+      @for (t of leaveTypes(); track t.id) {
+        <span class="legend-item"
+          ><span class="swatch" [style.background]="t.color"></span>{{ t.name }}</span
+        >
+      }
+      <span class="legend-item"><span class="swatch away"></span>Away</span>
+      <span class="legend-item"><span class="swatch pending"></span>Pending</span>
+      <span class="legend-item"><span class="swatch holiday"></span>Bank holiday</span>
+    </div>
+
+    @if (data.isLoading()) {
+      <div class="loading-bar"></div>
+    }
+
+    @if (data.error()) {
+      <p class="empty-state">{{ errorText(data.error()) }}</p>
+    } @else {
+      <div class="month" role="grid" [attr.aria-label]="title()">
+        <div class="weekdays" role="row">
+          @for (name of weekdays; track name) {
+            <span role="columnheader">{{ name }}</span>
+          }
+        </div>
+        @for (week of weeks(); track week[0].date) {
+          <div class="week" role="row">
+            @for (day of week; track day.date) {
+              <div
+                class="day"
+                role="gridcell"
+                [class.outside]="!day.inMonth"
+                [class.weekend]="day.weekend"
+                [class.holiday]="!!day.holiday"
+                [class.today]="day.today"
+              >
+                <div class="day-head">
+                  <span class="day-number">{{ day.day }}</span>
+                  @if (day.holiday && day.inMonth) {
+                    <span class="holiday-name" [title]="day.holiday">{{ day.holiday }}</span>
+                  }
+                </div>
+                @for (entry of day.entries.slice(0, maxChips); track entry.absence.request_id) {
+                  <button
+                    type="button"
+                    class="chip"
+                    [class.pending]="entry.absence.status === 'pending'"
+                    [class.hidden-type]="!entry.absence.leave_type"
+                    [class.half]="!!entry.half"
+                    [style.--chip-color]="entry.absence.leave_type?.color ?? null"
+                    [title]="chipTitle(entry)"
+                    [attr.aria-label]="chipTitle(entry)"
+                    [disabled]="!canOpen(entry.absence)"
+                    (click)="openEntry(entry.absence)"
+                  >
+                    {{ shortName(entry.absence.employee.name) }}
+                    @if (entry.half) {
+                      <span class="half-mark">½</span>
+                    }
+                  </button>
+                }
+                @if (day.entries.length > maxChips) {
+                  <button type="button" class="more" (click)="showDay(day)">
+                    +{{ day.entries.length - maxChips }} more
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <ol class="agenda list-plain" [attr.aria-label]="title() + ' agenda'">
+        @for (day of agenda(); track day.date) {
+          <li class="agenda-day" [class.today]="day.today">
+            <h3>
+              {{ formatDate(day.date, 'weekday') }}
+              @if (day.holiday) {
+                <span class="agenda-holiday">{{ day.holiday }}</span>
+              }
+            </h3>
+            @for (entry of day.entries; track entry.absence.request_id) {
+              <button
+                type="button"
+                class="agenda-entry"
+                [class.pending]="entry.absence.status === 'pending'"
+                [disabled]="!canOpen(entry.absence)"
+                (click)="openEntry(entry.absence)"
+              >
+                <app-avatar [name]="entry.absence.employee.name" [size]="30" />
+                <span class="agenda-name">
+                  <strong>{{ entry.absence.employee.name }}</strong>
+                  <small>
+                    {{ formatDateRange(entry.absence.start_date, entry.absence.end_date) }}
+                    @if (entry.half) {
+                      · {{ entry.half }} only
+                    }
+                    @if (entry.absence.status === 'pending') {
+                      · pending
+                    }
+                  </small>
+                </span>
+                <app-leave-type-tag [type]="entry.absence.leave_type" />
+              </button>
+            }
+          </li>
+        } @empty {
+          @if (data.value()) {
+            <li class="empty-state">Nobody is off this month.</li>
+          }
+        }
+      </ol>
+    }
+  </div>
+</section>
+
+@if (selectedDay(); as day) {
+  <app-modal [title]="formatDate(day.date, 'weekday')" [width]="440" (closed)="closeDay()">
+    <ul class="modal-body list-plain day-list">
+      @for (entry of day.entries; track entry.absence.request_id) {
+        <li>
+          <button
+            type="button"
+            class="agenda-entry"
+            [class.pending]="entry.absence.status === 'pending'"
+            [disabled]="!canOpen(entry.absence)"
+            (click)="openEntry(entry.absence)"
+          >
+            <app-avatar [name]="entry.absence.employee.name" [size]="30" />
+            <span class="agenda-name">
+              <strong>{{ entry.absence.employee.name }}</strong>
+              <small>
+                {{ formatDateRange(entry.absence.start_date, entry.absence.end_date) }}
+                @if (entry.half) {
+                  · {{ entry.half }} only
+                }
+                @if (entry.absence.status === 'pending') {
+                  · pending
+                }
+              </small>
+            </span>
+            <app-leave-type-tag [type]="entry.absence.leave_type" />
+          </button>
+        </li>
+      }
+    </ul>
+  </app-modal>
+}
+
+@if (openRequestId(); as id) {
+  <app-request-detail [requestId]="id" (changed)="changed()" (closed)="closeRequest()" />
+}

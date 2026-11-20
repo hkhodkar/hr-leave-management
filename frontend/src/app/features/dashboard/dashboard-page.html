@@ -1,0 +1,217 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>{{ greeting() }}{{ firstName() ? ', ' + firstName() : '' }}</h1>
+      <p class="subtitle">
+        @if (dashboard.value(); as d) {
+          {{ formatDate(d.date, 'weekday') }} · here is who is around this week.
+        } @else {
+          Here is who is around this week.
+        }
+      </p>
+    </div>
+    <div class="page-actions">
+      <a class="btn btn-primary" routerLink="/my-leave" [queryParams]="{ book: 1 }">
+        <app-icon name="plus" [size]="16" />
+        Request leave
+      </a>
+    </div>
+  </header>
+
+  @if (dashboard.error()) {
+    <p class="form-error">{{ errorText(dashboard.error()) }}</p>
+  }
+
+  @if (dashboard.value(); as d) {
+    <div class="kpis">
+      <article class="card kpi">
+        <span class="kpi-icon off"><app-icon name="plane" /></span>
+        <div>
+          <p class="kpi-label">Off today</p>
+          <p class="kpi-value">{{ d.off_today.length }}</p>
+        </div>
+      </article>
+      <article class="card kpi">
+        <span class="kpi-icon week"><app-icon name="calendar" /></span>
+        <div>
+          <p class="kpi-label">Off this week</p>
+          <p class="kpi-value">{{ d.off_this_week.length }}</p>
+        </div>
+      </article>
+      @if (session.canApprove()) {
+        <a class="card kpi kpi-link" routerLink="/approvals">
+          <span class="kpi-icon pending"><app-icon name="inbox" /></span>
+          <div>
+            <p class="kpi-label">Waiting for your approval</p>
+            <p class="kpi-value">{{ d.pending_approvals }}</p>
+          </div>
+        </a>
+      } @else {
+        <a class="card kpi kpi-link" routerLink="/my-leave">
+          <span class="kpi-icon pending"><app-icon name="clock" /></span>
+          <div>
+            <p class="kpi-label">Your pending requests</p>
+            <p class="kpi-value">{{ d.my_pending }}</p>
+          </div>
+        </a>
+      }
+      <article class="card kpi">
+        <span class="kpi-icon holiday"><app-icon name="flag" /></span>
+        <div>
+          <p class="kpi-label">Next bank holiday</p>
+          @if (d.next_holidays[0]; as h) {
+            <p class="kpi-value small">{{ formatDate(h.date, 'weekday') }}</p>
+            <p class="kpi-note">{{ h.name }} · {{ daysUntil(h.date, d.date) }}</p>
+          } @else {
+            <p class="kpi-value small">–</p>
+          }
+        </div>
+      </article>
+    </div>
+
+    <div class="grid">
+      <article class="card card-flush">
+        <div class="card-header">
+          <h2>Who's off today</h2>
+          <a routerLink="/calendar" class="link-sm">Team calendar</a>
+        </div>
+        @if (d.off_today.length) {
+          <ul class="list-plain people">
+            @for (a of d.off_today; track a.request_id) {
+              <li>
+                <button type="button" class="person" [disabled]="!a.leave_type" (click)="open(a)">
+                  <app-avatar [name]="a.employee.name" [size]="34" />
+                  <span class="person-text">
+                    <strong>{{ a.employee.name }}</strong>
+                    <small>{{ a.employee.job_title }}</small>
+                  </span>
+                  <span class="person-side">
+                    <app-leave-type-tag [type]="a.leave_type" />
+                    <small>{{ backOn(a, d.date) }}</small>
+                  </span>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="empty-state">Everyone is in today.</p>
+        }
+
+        <div class="card-header sub">
+          <h2>Also off this week</h2>
+        </div>
+        @if (alsoThisWeek().length) {
+          <ul class="list-plain people">
+            @for (a of alsoThisWeek(); track a.request_id) {
+              <li>
+                <button type="button" class="person" [disabled]="!a.leave_type" (click)="open(a)">
+                  <app-avatar [name]="a.employee.name" [size]="34" />
+                  <span class="person-text">
+                    <strong>{{ a.employee.name }}</strong>
+                    <small>{{ formatDateRange(a.start_date, a.end_date) }}</small>
+                  </span>
+                  <span class="person-side">
+                    <app-leave-type-tag [type]="a.leave_type" />
+                    <small>{{ formatDays(a.days) }}</small>
+                  </span>
+                </button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="empty-state">No other leave this week.</p>
+        }
+      </article>
+
+      <div class="column">
+        @if (session.canApprove()) {
+          <article class="card card-flush">
+            <div class="card-header">
+              <h2>Waiting for you</h2>
+              <a routerLink="/approvals" class="link-sm">All approvals</a>
+            </div>
+            @if (waiting.value(); as page) {
+              @if (page.items.length) {
+                <ul class="list-plain people">
+                  @for (r of page.items; track r.id) {
+                    <li>
+                      <button type="button" class="person" (click)="openRequest(r.id)">
+                        <app-avatar [name]="r.employee.name" [size]="34" />
+                        <span class="person-text">
+                          <strong>{{ r.employee.name }}</strong>
+                          <small
+                            >{{ formatDateRange(r.start_date, r.end_date) }} ·
+                            {{ formatDays(r.days) }}</small
+                          >
+                        </span>
+                        <span class="person-side">
+                          <app-leave-type-tag [type]="r.leave_type" />
+                        </span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="empty-state">All caught up.</p>
+              }
+            }
+          </article>
+        }
+
+        <article class="card chart-card">
+          <div class="card-header">
+            <h2>Leave taken in {{ d.usage.year }}</h2>
+            <div class="segmented compact" role="radiogroup" aria-label="Chart values">
+              <label>
+                <input
+                  type="radio"
+                  name="usage-mode"
+                  value="total"
+                  [checked]="usageMode() === 'total'"
+                  (change)="setMode('total')"
+                />Total
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="usage-mode"
+                  value="per-person"
+                  [checked]="usageMode() === 'per-person'"
+                  (change)="setMode('per-person')"
+                />Per person
+              </label>
+            </div>
+          </div>
+          <p class="chart-note text-muted">Approved days by department and leave type</p>
+          @if (chart(); as config) {
+            <div class="chart-box">
+              <canvas
+                [appChart]="config"
+                aria-label="Leave taken by department"
+                role="img"
+              ></canvas>
+            </div>
+          }
+        </article>
+      </div>
+    </div>
+
+    <section class="balances">
+      <div class="section-head">
+        <h2>Your balance for {{ d.usage.year }}</h2>
+        <a routerLink="/my-leave" class="link-sm">My leave</a>
+      </div>
+      <app-balance-cards [balances]="d.my_balances" />
+    </section>
+  } @else if (!dashboard.error()) {
+    <div class="kpis">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="card kpi placeholder"></div>
+      }
+    </div>
+  }
+</section>
+
+@if (openRequestId(); as id) {
+  <app-request-detail [requestId]="id" (changed)="changed()" (closed)="closeRequest()" />
+}

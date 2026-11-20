@@ -1,0 +1,308 @@
+.calendar-toolbar {
+  .off-count {
+    margin-left: auto;
+    font-size: 13px;
+  }
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .btn {
+    margin-left: 8px;
+  }
+}
+
+.month-title {
+  min-width: 150px;
+  font-size: 17px;
+  text-align: center;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+
+  &.away {
+    background: var(--text-subtle);
+  }
+
+  &.pending {
+    border: 1.5px dashed var(--text-muted);
+    background: var(--surface);
+  }
+
+  &.holiday {
+    background: var(--warning-soft);
+    border: 1px solid #f3d29a;
+  }
+}
+
+.month {
+  display: flex;
+  flex-direction: column;
+}
+
+.weekdays,
+.week {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) repeat(2, minmax(0, 0.6fr));
+}
+
+.weekdays span {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  min-height: 118px;
+  padding: 6px 6px 8px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+
+  &:nth-child(7n) {
+    border-right: 0;
+  }
+
+  &.weekend {
+    background: var(--surface-muted);
+  }
+
+  &.holiday {
+    background: var(--warning-soft);
+  }
+
+  &.outside {
+    background: var(--surface-hover);
+
+    .day-number {
+      color: var(--text-subtle);
+    }
+  }
+
+  &.today .day-number {
+    background: var(--primary);
+    color: #fff;
+  }
+}
+
+.day-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-bottom: 2px;
+}
+
+.day-number {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.holiday-name {
+  overflow: hidden;
+  color: var(--warning);
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip {
+  --chip-color: var(--text-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  width: 100%;
+  min-height: 22px;
+  padding: 1px 8px;
+  overflow: hidden;
+  border: 1px solid var(--chip-color);
+  border-radius: 5px;
+  background: var(--chip-color);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:hover:not(:disabled) {
+    filter: brightness(0.92);
+  }
+
+  &.half {
+    background: linear-gradient(
+      90deg,
+      var(--chip-color) 50%,
+      color-mix(in srgb, var(--chip-color) 70%, #fff) 50%
+    );
+  }
+
+  &.pending {
+    border-style: dashed;
+    background: color-mix(in srgb, var(--chip-color) 12%, var(--surface));
+    color: var(--text);
+  }
+}
+
+.half-mark {
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+.more {
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.agenda {
+  display: none;
+}
+
+.agenda-day {
+  padding: 12px 16px;
+
+  & + & {
+    border-top: 1px solid var(--border);
+  }
+
+  h3 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+
+  &.today h3 {
+    color: var(--primary);
+  }
+}
+
+.agenda-holiday {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 12px;
+}
+
+.agenda-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  app-leave-type-tag {
+    flex-shrink: 0;
+    max-width: 45%;
+    font-size: 13px;
+  }
+}
+
+.agenda-name {
+  flex: 1;
+  min-width: 0;
+
+  strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+}
+
+.day-list li + li {
+  border-top: 1px solid var(--border);
+}
+
+// phones get an agenda instead of the grid
+@media (max-width: 760px) {
+  .month {
+    display: none;
+  }
+
+  .agenda {
+    display: block;
+  }
+
+  .calendar-toolbar .off-count {
+    margin-left: 0;
+  }
+
+  .month-nav {
+    width: 100%;
+
+    .month-title {
+      flex: 1;
+    }
+  }
+}
