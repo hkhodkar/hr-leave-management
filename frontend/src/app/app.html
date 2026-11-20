@@ -1,0 +1,103 @@
+<div class="layout">
+  <aside class="sidebar" [class.open]="menuOpen()">
+    <div class="sidebar-inner">
+      <div class="sidebar-top">
+        <a class="brand" routerLink="/">
+          <span class="brand-logo"><app-icon name="calendar-check" [size]="18" /></span>
+          <span>Leave Manager</span>
+        </a>
+        <button
+          type="button"
+          class="menu-btn"
+          [attr.aria-expanded]="menuOpen()"
+          aria-label="Toggle navigation"
+          (click)="toggleMenu()"
+        >
+          <app-icon [name]="menuOpen() ? 'x' : 'menu'" />
+        </button>
+      </div>
+
+      <nav class="nav" aria-label="Main">
+        @for (item of navItems; track item.path) {
+          @if (!item.visible || item.visible()) {
+            <a
+              class="nav-link"
+              [routerLink]="item.path"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: !!item.exact }"
+            >
+              <app-icon [name]="item.icon" />
+              <span class="nav-label">{{ item.label }}</span>
+              @if (item.badge && item.badge() > 0) {
+                <span class="nav-badge" [attr.aria-label]="item.badge() + ' pending'">{{
+                  item.badge()
+                }}</span>
+              }
+            </a>
+          }
+        }
+      </nav>
+
+      <div class="sidebar-footer">
+        @if (demo.active()) {
+          <a
+            class="nav-link"
+            href="https://github.com/hkhodkar/hr-leave-management"
+            target="_blank"
+            rel="noopener"
+          >
+            <app-icon name="external" />
+            <span>Source code</span>
+          </a>
+        } @else {
+          <a class="nav-link" href="/docs" target="_blank" rel="noopener">
+            <app-icon name="external" />
+            <span>API docs</span>
+          </a>
+        }
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="view-as">
+        <label for="view-as">View as</label>
+        <div class="view-as-control">
+          @if (session.current(); as user) {
+            <app-avatar [name]="user.name" [size]="28" />
+          }
+          <select
+            id="view-as"
+            class="select"
+            (change)="switchUser($event)"
+            aria-describedby="view-as-hint"
+          >
+            @for (group of userGroups(); track group.label) {
+              <optgroup [label]="group.label">
+                @for (user of group.users; track user.id) {
+                  <option [value]="user.id" [selected]="user.id === session.userId()">
+                    {{ user.name }} · {{ user.job_title }}
+                  </option>
+                }
+              </optgroup>
+            }
+          </select>
+        </div>
+        @if (session.role(); as role) {
+          <span class="role-tag" [class]="'role-tag role-' + role">{{ roleLabels[role] }}</span>
+        }
+      </div>
+      <p id="view-as-hint" class="topbar-hint">
+        No login in this demo. Switch people to see what employees, managers and HR can do.
+      </p>
+    </header>
+
+    <main class="content">
+      <app-demo-banner />
+      <router-outlet />
+    </main>
+  </div>
+</div>
+
+<app-toast-container />
